@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PMP Exam — CPI & SPI Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F4F3EE;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .container { max-width: 680px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    background: #0B1120;
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #C9A84C, #F0C040, #A07830);
+  }
+  .header-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 10px;
+  }
+  .header-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .header-title span { color: #F0C040; }
+  .header-sub { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+  /* Nav tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e8e6e0;
+    padding: 6px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #888;
+    transition: background 0.2s, color 0.2s;
+  }
+  .tab.active {
+    background: #0B1120;
+    color: #F0C040;
+  }
+
+  /* Sections */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Section label */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+    margin: 0 0 12px;
+  }
+
+  /* Card */
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e8e6e0;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  /* ── EXPLAINER ── */
+  .ev-trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 480px) { .ev-trio { grid-template-columns: 1fr; } }
+
+  .ev-card {
+    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid;
+  }
+  .ev-card.pv { background: #FDF8EC; border-color: #F0C040; }
+  .ev-card.ev { background: #EDFAF4; border-color: #86EFBC; }
+  .ev-card.ac { background: #FEF3EC; border-color: #FFC49B; }
+
+  .ev-abbr {
+    font-size: 32px;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 4px;
+  }
+  .ev-card.pv .ev-abbr { color: #A07830; }
+  .ev-card.ev .ev-abbr { color: #059669; }
+  .ev-card.ac .ev-abbr { color: #C05621; }
+
+  .ev-fullname { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 8px; }
+  .ev-question { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; line-height: 1.3; }
+  .ev-desc { font-size: 13px; color: #555; line-height: 1.55; }
+
+  /* Story box */
+  .story-box {
+    background: #FFFBEB;
+    border: 1px solid #FCD34D;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .story-title { font-size: 13px; font-weight: 700; color: #92400E; margin-bottom: 10px; }
+  .story-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(252,211,77,0.4);
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .story-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .story-badge {
+    font-size: 12px;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
+    padding: 2px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .story-badge.pv { background: #F0C040; color: #0B1120; }
+  .story-badge.ev { background: #86EFBC; color: #059669; }
+  .story-badge.ac { background: #FFC49B; color: #C05621; }
+
+  /* Timeline visual */
+  .timeline-vis {
+    background: #F4F3EE;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .tl-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 12px; }
+  .tl-bar-row { margin-bottom: 10px; }
+  .tl-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #555; margin-bottom: 4px; font-weight: 600; }
+  .tl-bar-track { height: 14px; background: #e0ded8; border-radius: 7px; overflow: hidden; }
+  .tl-bar-fill { height: 100%; border-radius: 7px; }
+
+  /* ── WORKED EXAMPLE ── */
+  .step-list { counter-reset: steps; }
+  .step {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0ede8;
+    align-items: flex-start;
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    background: #F0C040;
+    color: #0B1120;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: #555; line-height: 1.55; }
+  .step-calc {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    background: #F4F3EE;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    color: #1a1a1a;
+    display: inline-block;
+  }
+  .step-result {
+    font-size: 13px;
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-block;
+  }
+  .result-green { background: #EDFAF4; color: #059669; }
+  .result-red   { background: #FEF2F2; color: #DC2626; }
+
+  /* scenario pills */
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .scenario-btn {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid #e8e6e0;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .scenario-btn:hover { border-color: #F0C040; background: #FDF8EC; }
+  .scenario-btn.active { border-color: #F0C040; background: #FDF8EC; }
+  .sc-title { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
+  .sc-desc { font-size: 11px; color: #888; }
+
+  /* ── CALCULATOR ── */
+  .formula-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .formula-card {
+    flex: 1;
+    background: #F4F3EE;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .f-name { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+  .f-eq { font-size: 20px; font-weight: 700; color: #1a1a1a; font-family: 'Courier New', monospace; margin-bottom: 4px; }
+  .f-hint { font-size: 12px; color: #888; }
+
+  .slider-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 480px) { .slider-grid { grid-template-columns: 1fr; } }
+  .s-card { background: #F4F3EE; border-radius: 10px; padding: 14px; }
+  .s-abbr { font-size: 18px; font-weight: 800; color: #1a1a1a; margin-bottom: 2px; font-family: 'Courier New', monospace; }
+  .s-name { font-size: 11px; color: #888; margin-bottom: 2px; }
+  .s-val { font-size: 22px; font-weight: 700; color: #1a1a1a; margin: 6px 0 8px; font-family: 'Courier New', monospace; }
+  input[type=range] { width: 100%; height: 4px; accent-color: #C9A84C; cursor: pointer; }
+
+  .result-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .r-card { border-radius: 12px; padding: 16px; border: 1.5px solid; text-align: center; transition: background 0.3s, border-color 0.3s; }
+  .r-name { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+  .r-val { font-size: 40px; font-weight: 800; font-family: 'Courier New', monospace; line-height: 1; margin-bottom: 8px; transition: color 0.3s; }
+  .r-bar-wrap { height: 6px; background: #e8e6e0; border-radius: 3px; margin-bottom: 6px; overflow: hidden; }
+  .r-bar { height: 100%; border-radius: 3px; transition: width 0.3s, background 0.3s; }
+  .r-bar-labels { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-bottom: 8px; }
+  .r-verdict { font-size: 13px; font-weight: 600; transition: color 0.3s; }
+
+  .verdict-box { border-radius: 12px; padding: 14px 16px; font-size: 14px; line-height: 1.6; border: 1px solid; margin-bottom: 16px; transition: background 0.3s; }
+
+  .trick { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #f0ede8; }
+  .trick:last-child { border-bottom: none; padding-bottom: 0; }
+  .trick-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .trick-body { font-size: 13px; color: #555; line-height: 1.6; }
+  .trick-body strong { color: #1a1a1a; }
+
+  .rule-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rule-item { background: #F4F3EE; border-radius: 10px; padding: 12px 14px; }
+  .rule-val { font-size: 18px; font-weight: 800; font-family: 'Courier New', monospace; margin-bottom: 4px; }
+  .rule-desc { font-size: 12px; color: #888; }
+
+  /* Number input */
+  .num-wrap {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1.5px solid #d8d4ce;
+    border-radius: 8px;
+    padding: 0 10px;
+    margin: 8px 0 10px;
+    transition: border-color 0.2s;
+  }
+  .num-wrap:focus-within { border-color: #C9A84C; }
+  .num-prefix { font-size: 15px; font-weight: 700; color: #aaa; flex-shrink: 0; }
+  .num-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: #1a1a1a;
+    padding: 9px 4px;
+    min-width: 0;
+  }
+  .num-input::-webkit-outer-spin-button,
+  .num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .num-input { -moz-appearance: textfield; }
+
+  /* Preset buttons */
+  .preset-btn {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #e8e6e0;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    font-family: inherit;
+  }
+  .preset-btn:hover { border-color: #C9A84C; background: #FDF8EC; color: #A07830; }
+
+  /* Calc line under result */
+  .r-calc, .v-calc {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  /* Variance cards */
+  .v-card {
+    border-radius: 12px;
+    padding: 16px;
+    border: 1.5px solid;
+    text-align: center;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .v-name { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+  .v-formula { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; color: #aaa; margin-bottom: 8px; }
+  .v-val { font-size: 30px; font-weight: 800; font-family: 'Courier New', monospace; line-height: 1; margin-bottom: 8px; transition: color 0.3s; }
+  .v-verdict { font-size: 13px; font-weight: 600; transition: color 0.3s; }
+
+  .footer { text-align: center; font-size: 12px; color: #aaa; margin-top: 24px; }
+
+  /* Color states */
+  .green { background: #EDFAF4; border-color: #86EFBC; }
+  .green .r-val { color: #059669; }
+  .green .r-verdict { color: #059669; }
+  .yellow { background: #FFFBEB; border-color: #FCD34D; }
+  .yellow .r-val { color: #D97706; }
+  .yellow .r-verdict { color: #D97706; }
+  .red { background: #FEF2F2; border-color: #FCA5A5; }
+  .red .r-val { color: #DC2626; }
+  .red .r-verdict { color: #DC2626; }
+  .verdict-green { background: #EDFAF4; border-color: #86EFBC; color: #065F46; }
+  .verdict-yellow { background: #FFFBEB; border-color: #FCD34D; color: #92400E; }
+  .verdict-red { background: #FEF2F2; border-color: #FCA5A5; color: #991B1B; }
+  .v-card.green { background: #EDFAF4; border-color: #86EFBC; }
+  .v-card.red { background: #FEF2F2; border-color: #FCA5A5; }
+  .r-card:not(.green):not(.yellow):not(.red) { background: #F4F3EE; border-color: #e0ded8; }
+  .r-card:not(.green):not(.yellow):not(.red) .r-val { color: #ccc; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-tag">PMP Exam Prep · Earned Value Management</div>
+    <div class="header-title"><span>CPI</span> & <span>SPI</span> Complete Study Guide</div>
+    <div class="header-sub">Explainer · Worked Example · Interactive Calculator</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('explainer')">📖 What is EV?</button>
+    <button class="tab" onclick="switchTab('example')">🧮 Worked Example</button>
+    <button class="tab" onclick="switchTab('calculator')">🎛️ Calculator</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 1 — EXPLAINER
+  ══════════════════════════════════════════ -->
+  <div class="section active" id="tab-explainer">
+
+    <div class="section-label">The 3 core values — what do they mean?</div>
+    <div class="ev-trio">
+      <div class="ev-card pv">
+        <div class="ev-abbr">PV</div>
+        <div class="ev-fullname">Planned Value</div>
+        <div class="ev-question">What did we plan to finish by today?</div>
+        <div class="ev-desc">The budgeted cost of the work that was <strong>scheduled</strong> to be done by now. It's your <em>plan</em>.</div>
+      </div>
+      <div class="ev-card ev">
+        <div class="ev-abbr">EV</div>
+        <div class="ev-fullname">Earned Value</div>
+        <div class="ev-question">What have we actually accomplished?</div>
+        <div class="ev-desc">The budgeted cost of the work that was actually <strong>completed</strong>. It's your real <em>progress</em>.</div>
+      </div>
+      <div class="ev-card ac">
+        <div class="ev-abbr">AC</div>
+        <div class="ev-fullname">Actual Cost</div>
+        <div class="ev-question">How much money did we actually spend?</div>
+        <div class="ev-desc">The real money spent to complete the work so far. It's your actual <em>spending</em>.</div>
+      </div>
+    </div>
+
+    <div class="section-label">A real-life story to remember it</div>
+    <div class="story-box">
+      <div class="story-title">🏗️ Imagine you are building a house. Today is the halfway point of the project.</div>
+      <div class="story-row">
+        <div class="story-badge pv">PV</div>
+        <div>You planned to have the <strong>foundation and walls done</strong> by today. That work was budgeted at <strong>$50,000</strong>. That is your PV.</div>
+      </div>
+      <div class="story-row">
+        <div class="story-badge ev">EV</div>
+        <div>But you only finished the <strong>foundation</strong> (not the walls). That foundation was budgeted at <strong>$30,000</strong>. That is your EV — you "earned" only $30k worth of work.</div>
+      </div>
+      <div class="story-row">
+        <div class="story-badge ac">AC</div>
+        <div>To build just the foundation, you actually spent <strong>$40,000</strong> (more than budgeted!). That is your AC — the real money out of your pocket.</div>
+      </div>
+    </div>
+
+    <div class="section-label">Visualising PV vs EV vs AC</div>
+    <div class="timeline-vis">
+      <div class="tl-label">Project progress at the halfway checkpoint ($50k total budget)</div>
+      <div class="tl-bar-row">
+        <div class="tl-bar-label"><span style="color:#A07830">PV — Planned</span><span style="color:#A07830">$50,000</span></div>
+        <div class="tl-bar-track"><div class="tl-bar-fill" style="width:100%;background:#C9A84C;opacity:0.85"></div></div>
+      </div>
+      <div class="tl-bar-row">
+        <div class="tl-bar-label"><span style="color:#059669">EV — Earned (actual progress)</span><span style="color:#059669">$30,000</span></div>
+        <div class="tl-bar-track"><div class="tl-bar-fill" style="width:60%;background:#059669"></div></div>
+      </div>
+      <div class="tl-bar-row">
+        <div class="tl-bar-label"><span style="color:#C05621">AC — Actual cost spent</span><span style="color:#C05621">$40,000</span></div>
+        <div class="tl-bar-track"><div class="tl-bar-fill" style="width:80%;background:#C05621;opacity:0.8"></div></div>
+      </div>
+      <div style="font-size:12px;color:#888;margin-top:10px;line-height:1.5">EV &lt; PV → behind schedule &nbsp;|&nbsp; AC &gt; EV → over budget — double trouble!</div>
+    </div>
+
+    <div class="section-label">Now the formulas make sense</div>
+    <div class="card">
+      <div class="formula-row">
+        <div class="formula-card">
+          <div class="f-name">CPI — Cost efficiency</div>
+          <div class="f-eq">EV ÷ AC</div>
+          <div class="f-hint">$30k ÷ $40k = <strong>0.75</strong> → Over budget ⚠️</div>
+        </div>
+        <div class="formula-card">
+          <div class="f-name">SPI — Schedule efficiency</div>
+          <div class="f-eq">EV ÷ PV</div>
+          <div class="f-hint">$30k ÷ $50k = <strong>0.60</strong> → Behind schedule ⚠️</div>
+        </div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-item">
+          <div class="rule-val" style="color:#059669">&gt; 1.0 ✓</div>
+          <div class="rule-desc">Good — under budget or ahead of schedule</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-val" style="color:#DC2626">&lt; 1.0 ✗</div>
+          <div class="rule-desc">Bad — over budget or behind schedule</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="tab" style="width:100%;padding:14px;background:#0B1120;color:#F0C040;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-bottom:16px" onclick="switchTab('example')">Next: See a worked example →</button>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 2 — WORKED EXAMPLE
+  ══════════════════════════════════════════ -->
+  <div class="section" id="tab-example">
+
+    <div class="section-label">Choose a scenario</div>
+    <div class="scenario-grid">
+      <div class="scenario-btn active" onclick="loadScenario(0, this)">
+        <div class="sc-title">🏗️ Construction project</div>
+        <div class="sc-desc">Over budget, behind schedule</div>
+      </div>
+      <div class="scenario-btn" onclick="loadScenario(1, this)">
+        <div class="sc-title">💻 Software project</div>
+        <div class="sc-desc">Under budget, behind schedule</div>
+      </div>
+      <div class="scenario-btn" onclick="loadScenario(2, this)">
+        <div class="sc-title">📦 Event planning</div>
+        <div class="sc-desc">Over budget, ahead of schedule</div>
+      </div>
+      <div class="scenario-btn" onclick="loadScenario(3, this)">
+        <div class="sc-title">🚀 Marketing campaign</div>
+        <div class="sc-desc">Under budget, ahead of schedule</div>
+      </div>
+    </div>
+
+    <div class="section-label">Step-by-step calculation</div>
+    <div class="card">
+      <div id="scenario-intro" style="background:#F4F3EE;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:14px;color:#555;line-height:1.6;"></div>
+      <div class="step-list">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Identify your three values</div>
+            <div id="step1-desc" class="step-desc"></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Calculate CPI (Cost Performance Index)</div>
+            <div class="step-desc">Divide EV by AC. This tells you how much value you got for every $1 spent.</div>
+            <div id="step2-calc" class="step-calc"></div>
+            <div id="step2-result" class="step-result"></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Calculate SPI (Schedule Performance Index)</div>
+            <div class="step-desc">Divide EV by PV. This tells you how much work you did vs. what was planned.</div>
+            <div id="step3-calc" class="step-calc"></div>
+            <div id="step3-result" class="step-result"></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Calculate the variances (CV and SV)</div>
+            <div class="step-desc">Same pairs, but subtract instead of divide. This tells you <em>how many dollars</em> off you are — not just the ratio.</div>
+            <div id="step4-calc-cv" class="step-calc"></div>
+            <div id="step4-calc-sv" class="step-calc" style="margin-left:6px"></div>
+            <div id="step4-result" class="step-result"></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Interpret the results</div>
+            <div id="step5-desc" class="step-desc"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="tab" style="width:100%;padding:14px;background:#0B1120;color:#F0C040;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-bottom:16px" onclick="switchTab('calculator')">Next: Try the live calculator →</button>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 3 — CALCULATOR
+  ══════════════════════════════════════════ -->
+  <div class="section" id="tab-calculator">
+
+    <div class="section-label">The Four Formulas</div>
+    <div class="card">
+      <div class="formula-row">
+        <div class="formula-card">
+          <div class="f-name">CPI — Cost Index</div>
+          <div class="f-eq">EV ÷ AC</div>
+          <div class="f-hint">Ratio · compare to 1.0</div>
+        </div>
+        <div class="formula-card">
+          <div class="f-name">SPI — Schedule Index</div>
+          <div class="f-eq">EV ÷ PV</div>
+          <div class="f-hint">Ratio · compare to 1.0</div>
+        </div>
+      </div>
+      <div class="formula-row">
+        <div class="formula-card">
+          <div class="f-name">CV — Cost Variance</div>
+          <div class="f-eq">EV − AC</div>
+          <div class="f-hint">Dollars · compare to 0</div>
+        </div>
+        <div class="formula-card">
+          <div class="f-name">SV — Schedule Variance</div>
+          <div class="f-eq">EV − PV</div>
+          <div class="f-hint">Dollars · compare to 0</div>
+        </div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-item">
+          <div class="rule-val" style="color:#059669">&gt; 1.0 &nbsp;/&nbsp; positive ✓</div>
+          <div class="rule-desc">Good — under budget or ahead</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-val" style="color:#DC2626">&lt; 1.0 &nbsp;/&nbsp; negative ✗</div>
+          <div class="rule-desc">Bad — over budget or behind</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Enter your numbers</div>
+    <div class="card">
+      <div style="font-size:13px;color:#666;margin-bottom:14px;line-height:1.5">Type exact values from a practice question, or drag the sliders to explore.</div>
+      <div class="slider-grid">
+        <div class="s-card">
+          <div class="s-abbr">PV</div>
+          <div class="s-name">Planned Value</div>
+          <div class="num-wrap">
+            <span class="num-prefix">$</span>
+            <input type="number" class="num-input" id="pv-num" value="100" min="0" step="1" oninput="syncFromNumber('pv')">
+          </div>
+          <input type="range" id="pv" min="0" max="500" value="100" step="1" oninput="syncFromSlider('pv')">
+          <div style="font-size:11px;color:#aaa;margin-top:4px">Work planned by now</div>
+        </div>
+        <div class="s-card">
+          <div class="s-abbr">EV</div>
+          <div class="s-name">Earned Value</div>
+          <div class="num-wrap">
+            <span class="num-prefix">$</span>
+            <input type="number" class="num-input" id="ev-num" value="80" min="0" step="1" oninput="syncFromNumber('ev')">
+          </div>
+          <input type="range" id="ev" min="0" max="500" value="80" step="1" oninput="syncFromSlider('ev')">
+          <div style="font-size:11px;color:#aaa;margin-top:4px">Work actually done</div>
+        </div>
+        <div class="s-card">
+          <div class="s-abbr">AC</div>
+          <div class="s-name">Actual Cost</div>
+          <div class="num-wrap">
+            <span class="num-prefix">$</span>
+            <input type="number" class="num-input" id="ac-num" value="100" min="0" step="1" oninput="syncFromNumber('ac')">
+          </div>
+          <input type="range" id="ac" min="0" max="500" value="100" step="1" oninput="syncFromSlider('ac')">
+          <div style="font-size:11px;color:#aaa;margin-top:4px">Money actually spent</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #f0ede8">
+        <span style="font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;align-self:center;margin-right:4px">Quick fill:</span>
+        <button class="preset-btn" onclick="setVals(50000,45000,48000)">$50k project</button>
+        <button class="preset-btn" onclick="setVals(100000,85000,95000)">$100k project</button>
+        <button class="preset-btn" onclick="setVals(100,100,100)">Perfect (1.0)</button>
+        <button class="preset-btn" onclick="clearVals()">Clear</button>
+      </div>
+    </div>
+
+    <div class="section-label">Your results — the indexes (ratios)</div>
+    <div class="result-row">
+      <div class="r-card" id="cpi-card">
+        <div class="r-name">CPI — Cost</div>
+        <div class="r-val" id="cpi-val">0.80</div>
+        <div class="r-calc" id="cpi-calc"></div>
+        <div class="r-bar-wrap"><div class="r-bar" id="cpi-bar"></div></div>
+        <div class="r-bar-labels"><span>0</span><span>1.0</span><span>2.0</span></div>
+        <div class="r-verdict" id="cpi-verdict">Over budget</div>
+      </div>
+      <div class="r-card" id="spi-card">
+        <div class="r-name">SPI — Schedule</div>
+        <div class="r-val" id="spi-val">0.80</div>
+        <div class="r-calc" id="spi-calc"></div>
+        <div class="r-bar-wrap"><div class="r-bar" id="spi-bar"></div></div>
+        <div class="r-bar-labels"><span>0</span><span>1.0</span><span>2.0</span></div>
+        <div class="r-verdict" id="spi-verdict">Behind schedule</div>
+      </div>
+    </div>
+
+    <div class="section-label">The variances (dollar amounts)</div>
+    <div class="result-row">
+      <div class="v-card" id="cv-card">
+        <div class="v-name">CV — Cost Variance</div>
+        <div class="v-formula">EV − AC</div>
+        <div class="v-val" id="cv-val">-$20</div>
+        <div class="v-calc" id="cv-calc"></div>
+        <div class="v-verdict" id="cv-verdict"></div>
+      </div>
+      <div class="v-card" id="sv-card">
+        <div class="v-name">SV — Schedule Variance</div>
+        <div class="v-formula">EV − PV</div>
+        <div class="v-val" id="sv-val">-$20</div>
+        <div class="v-calc" id="sv-calc"></div>
+        <div class="v-verdict" id="sv-verdict"></div>
+      </div>
+    </div>
+
+    <div class="verdict-box" id="verdict-box"></div>
+
+    <div class="section-label">Index vs Variance — don't mix them up!</div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="background:#FDF8EC;border:1.5px solid #F0C040;border-radius:10px;padding:14px 16px">
+          <div style="font-size:12px;font-weight:700;color:#A07830;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Index = ÷ (Ratio)</div>
+          <div style="font-family:'Courier New',monospace;font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:8px">CPI · SPI</div>
+          <div style="font-size:12px;color:#555;line-height:1.5">Answer is a <strong>number like 0.85</strong> — no dollar sign. Tells you <em>efficiency</em>. Compare to <strong>1.0</strong>.</div>
+        </div>
+        <div style="background:#F4F3EE;border:1.5px solid #d8d4ce;border-radius:10px;padding:14px 16px">
+          <div style="font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Variance = − (Subtract)</div>
+          <div style="font-family:'Courier New',monospace;font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:8px">CV · SV</div>
+          <div style="font-size:12px;color:#555;line-height:1.5">Answer is a <strong>dollar amount like -$5,000</strong>. Tells you <em>how much</em>. Compare to <strong>0</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Memory Tricks</div>
+    <div class="card">
+      <div class="trick">
+        <div class="trick-icon">💰</div>
+        <div class="trick-body"><strong>CPI = EV ÷ AC</strong> — "Did I get my money's worth?" EV on top = value received. AC at the bottom = money spent. Below 1 = you spent more than you earned.</div>
+      </div>
+      <div class="trick">
+        <div class="trick-icon">🕐</div>
+        <div class="trick-body"><strong>SPI = EV ÷ PV</strong> — "Am I on time?" EV on top = work done. PV at the bottom = work planned. Below 1 = you did less than planned.</div>
+      </div>
+      <div class="trick">
+        <div class="trick-icon">➖</div>
+        <div class="trick-body"><strong>CV and SV always start with EV too.</strong> CV = EV − AC. SV = EV − PV. Same pairs as the indexes — just subtract instead of divide. Negative = bad.</div>
+      </div>
+      <div class="trick">
+        <div class="trick-icon">💡</div>
+        <div class="trick-body"><strong>EV is always first in every EVM formula.</strong> Learn that one rule and you'll never write a formula backwards. <strong>1.0 for indexes, 0 for variances — that's your baseline.</strong></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">Prepared by <a href="https://www.linkedin.com/in/rustamlivugar/" target="_blank" style="color:#C9A84C;text-decoration:none;font-weight:600">Vugar Rustamli</a> · PM Consultant &amp; Agile Transformation Expert · <strong style="color:#C9A84C">PMWILL</strong></div>
+
+</div>
+
+<script>
+// ── TAB SWITCHING ──
+function switchTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const idx = ['explainer','example','calculator'].indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+// ── SCENARIOS ──
+const scenarios = [
+  {
+    title: '🏗️ Construction project — you are a PM on a building project with a $200,000 budget planned halfway through.',
+    pv: 100000, ev: 70000, ac: 90000,
+    step1: 'PV = $100,000 (you planned to finish half the building by now) | EV = $70,000 (only 70% of the planned work is done) | AC = $90,000 (you spent $90k to get that 70% done)',
+    interp: '⚠️ CPI of 0.78 means for every $1 spent, you only got $0.78 of value — you are over budget. SPI of 0.70 means you completed only 70% of the planned work — you are behind schedule. This project needs corrective action immediately.'
+  },
+  {
+    title: '💻 Software project — a development team is building an app with $50,000 planned for the first sprint cycle.',
+    pv: 50000, ev: 35000, ac: 30000,
+    step1: 'PV = $50,000 (planned work for the sprint) | EV = $35,000 (completed features valued at $35k) | AC = $30,000 (team was efficient — spent only $30k)',
+    interp: '✅ CPI of 1.17 means for every $1 spent, you got $1.17 of value — you are under budget, great! But SPI of 0.70 means you only finished 70% of planned features — you are behind schedule. The team is efficient but slower than planned.'
+  },
+  {
+    title: '📦 Event planning — organising a conference with $20,000 budget. You are 60% through the planning phase.',
+    pv: 12000, ev: 14000, ac: 16000,
+    step1: 'PV = $12,000 (planned 60% of work done by now) | EV = $14,000 (actually completed 70% of work — more than planned!) | AC = $16,000 (but it cost more than expected to move fast)',
+    interp: '⚠️ SPI of 1.17 means you are ahead of schedule — great progress! But CPI of 0.875 means you spent more than the value you earned — over budget. Moving fast came at a cost. Monitor spending carefully for the rest of the project.'
+  },
+  {
+    title: '🚀 Marketing campaign — launching a product campaign with $30,000 budget over 3 months. You are at month 2.',
+    pv: 20000, ev: 22000, ac: 18000,
+    step1: 'PV = $20,000 (planned 2 months of campaign work) | EV = $22,000 (delivered more content than planned — ahead of schedule) | AC = $18,000 (and spent less than expected!)',
+    interp: '✅ CPI of 1.22 — excellent! For every $1 spent you got $1.22 of value — under budget. SPI of 1.10 means you are 10% ahead of schedule. This project is the dream scenario — under budget AND ahead of schedule. Keep it up!'
+  }
+];
+
+function loadScenario(idx, btn) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const s = scenarios[idx];
+  const cpi = s.ev / s.ac;
+  const spi = s.ev / s.pv;
+
+  document.getElementById('scenario-intro').innerHTML = s.title;
+  document.getElementById('step1-desc').innerHTML = s.step1.replace(/\|/g, '<br>');
+
+  document.getElementById('step2-calc').textContent =
+    'CPI = EV ÷ AC = $' + s.ev.toLocaleString() + ' ÷ $' + s.ac.toLocaleString() + ' = ' + cpi.toFixed(2);
+  const r2 = document.getElementById('step2-result');
+  r2.textContent = cpi >= 1 ? '✅ CPI > 1 → Under budget' : '⚠️ CPI < 1 → Over budget';
+  r2.className = 'step-result ' + (cpi >= 1 ? 'result-green' : 'result-red');
+
+  document.getElementById('step3-calc').textContent =
+    'SPI = EV ÷ PV = $' + s.ev.toLocaleString() + ' ÷ $' + s.pv.toLocaleString() + ' = ' + spi.toFixed(2);
+  const r3 = document.getElementById('step3-result');
+  r3.textContent = spi >= 1 ? '✅ SPI > 1 → Ahead of schedule' : '⚠️ SPI < 1 → Behind schedule';
+  r3.className = 'step-result ' + (spi >= 1 ? 'result-green' : 'result-red');
+
+  // Variances
+  const cv = s.ev - s.ac;
+  const sv = s.ev - s.pv;
+  document.getElementById('step4-calc-cv').textContent =
+    'CV = EV − AC = $' + s.ev.toLocaleString() + ' − $' + s.ac.toLocaleString() +
+    ' = ' + (cv < 0 ? '−$' : '+$') + Math.abs(cv).toLocaleString();
+  document.getElementById('step4-calc-sv').textContent =
+    'SV = EV − PV = $' + s.ev.toLocaleString() + ' − $' + s.pv.toLocaleString() +
+    ' = ' + (sv < 0 ? '−$' : '+$') + Math.abs(sv).toLocaleString();
+  const r4 = document.getElementById('step4-result');
+  if (cv >= 0 && sv >= 0) {
+    r4.textContent = '✅ Both positive → saved money and ahead of plan';
+    r4.className = 'step-result result-green';
+  } else if (cv < 0 && sv < 0) {
+    r4.textContent = '⚠️ Both negative → overspent AND behind on work';
+    r4.className = 'step-result result-red';
+  } else if (cv < 0) {
+    r4.textContent = '⚠️ CV negative → overspent by $' + Math.abs(cv).toLocaleString();
+    r4.className = 'step-result result-red';
+  } else {
+    r4.textContent = '⚠️ SV negative → work behind plan by $' + Math.abs(sv).toLocaleString();
+    r4.className = 'step-result result-red';
+  }
+
+  document.getElementById('step5-desc').innerHTML = s.interp;
+}
+
+loadScenario(0, document.querySelector('.scenario-btn'));
+
+// ── CALCULATOR ──
+function getClass(val) {
+  if (val >= 1.0) return 'green';
+  if (val >= 0.9) return 'yellow';
+  return 'red';
+}
+function getBarColor(val) {
+  if (val >= 1.0) return '#10B981';
+  if (val >= 0.9) return '#F59E0B';
+  return '#EF4444';
+}
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+
+// Keep slider range sensible relative to the typed values
+function rescaleSliders() {
+  const vals = ['pv','ev','ac'].map(id => +document.getElementById(id + '-num').value || 0);
+  const maxVal = Math.max(...vals, 100);
+  // round the ceiling up to a clean number ~1.5x the largest entry
+  const target = maxVal * 1.5;
+  const mag = Math.pow(10, Math.floor(Math.log10(target)));
+  const ceiling = Math.ceil(target / mag) * mag;
+  const step = Math.max(1, Math.round(ceiling / 200));
+  ['pv','ev','ac'].forEach(id => {
+    const sl = document.getElementById(id);
+    sl.max = ceiling;
+    sl.step = step;
+    sl.value = +document.getElementById(id + '-num').value || 0;
+  });
+}
+
+// Typed input → update slider
+function syncFromNumber(id) {
+  rescaleSliders();
+  recalc();
+}
+
+// Slider → update typed input
+function syncFromSlider(id) {
+  document.getElementById(id + '-num').value = document.getElementById(id).value;
+  recalc();
+}
+
+// Preset buttons
+function setVals(pv, ev, ac) {
+  document.getElementById('pv-num').value = pv;
+  document.getElementById('ev-num').value = ev;
+  document.getElementById('ac-num').value = ac;
+  rescaleSliders();
+  recalc();
+}
+function clearVals() {
+  ['pv','ev','ac'].forEach(id => document.getElementById(id + '-num').value = '');
+  rescaleSliders();
+  recalc();
+}
+
+function recalc() {
+  const pv = +document.getElementById('pv-num').value || 0;
+  const ev = +document.getElementById('ev-num').value || 0;
+  const ac = +document.getElementById('ac-num').value || 0;
+
+  // keep sliders in sync with typed values
+  document.getElementById('pv').value = pv;
+  document.getElementById('ev').value = ev;
+  document.getElementById('ac').value = ac;
+
+  // ── INDEXES ──
+  const cpi = ac > 0 ? ev / ac : 0;
+  const spi = pv > 0 ? ev / pv : 0;
+
+  // CPI
+  document.getElementById('cpi-val').textContent = ac > 0 ? cpi.toFixed(2) : '—';
+  document.getElementById('cpi-calc').textContent = ac > 0 ? fmt(ev) + ' ÷ ' + fmt(ac) : 'enter AC';
+  document.getElementById('cpi-card').className = 'r-card ' + (ac > 0 ? getClass(cpi) : '');
+  document.getElementById('cpi-bar').style.width = (ac > 0 ? Math.min(cpi / 2, 1) * 100 : 0) + '%';
+  document.getElementById('cpi-bar').style.background = getBarColor(cpi);
+  document.getElementById('cpi-verdict').textContent = ac === 0 ? '' : cpi > 1 ? 'Under budget 👍' : cpi === 1 ? 'On budget ✓' : 'Over budget ⚠️';
+
+  // SPI
+  document.getElementById('spi-val').textContent = pv > 0 ? spi.toFixed(2) : '—';
+  document.getElementById('spi-calc').textContent = pv > 0 ? fmt(ev) + ' ÷ ' + fmt(pv) : 'enter PV';
+  document.getElementById('spi-card').className = 'r-card ' + (pv > 0 ? getClass(spi) : '');
+  document.getElementById('spi-bar').style.width = (pv > 0 ? Math.min(spi / 2, 1) * 100 : 0) + '%';
+  document.getElementById('spi-bar').style.background = getBarColor(spi);
+  document.getElementById('spi-verdict').textContent = pv === 0 ? '' : spi > 1 ? 'Ahead of schedule 👍' : spi === 1 ? 'On schedule ✓' : 'Behind schedule ⚠️';
+
+  // ── VARIANCES ──
+  const cv = ev - ac;
+  const sv = ev - pv;
+
+  // CV
+  const cvSign = cv > 0 ? '+' : cv < 0 ? '−' : '';
+  document.getElementById('cv-val').textContent = cvSign + fmt(Math.abs(cv));
+  document.getElementById('cv-calc').textContent = fmt(ev) + ' − ' + fmt(ac);
+  document.getElementById('cv-card').className = 'v-card ' + (cv > 0 ? 'green' : cv === 0 ? 'green' : 'red');
+  document.getElementById('cv-val').style.color = cv >= 0 ? '#059669' : '#DC2626';
+  const cvv = document.getElementById('cv-verdict');
+  cvv.textContent = cv > 0 ? 'Saved money 👍' : cv === 0 ? 'Exactly on budget ✓' : 'Overspent by this much ⚠️';
+  cvv.style.color = cv >= 0 ? '#059669' : '#DC2626';
+
+  // SV
+  const svSign = sv > 0 ? '+' : sv < 0 ? '−' : '';
+  document.getElementById('sv-val').textContent = svSign + fmt(Math.abs(sv));
+  document.getElementById('sv-calc').textContent = fmt(ev) + ' − ' + fmt(pv);
+  document.getElementById('sv-card').className = 'v-card ' + (sv >= 0 ? 'green' : 'red');
+  document.getElementById('sv-val').style.color = sv >= 0 ? '#059669' : '#DC2626';
+  const svv = document.getElementById('sv-verdict');
+  svv.textContent = sv > 0 ? 'Work ahead of plan 👍' : sv === 0 ? 'Exactly on plan ✓' : 'Work behind by this much ⚠️';
+  svv.style.color = sv >= 0 ? '#059669' : '#DC2626';
+
+  // ── OVERALL VERDICT ──
+  const vbox = document.getElementById('verdict-box');
+  if (pv === 0 || ac === 0 || ev === 0) {
+    vbox.innerHTML = '📝 Enter all three values (PV, EV and AC) to see the full analysis.';
+    vbox.className = 'verdict-box verdict-yellow';
+    return;
+  }
+  let msg, cls;
+  if (cpi >= 1 && spi >= 1) {
+    msg = '✅ <strong>All green!</strong> Project is under budget and on/ahead of schedule. Keep up the good work!';
+    cls = 'verdict-box verdict-green';
+  } else if (cpi >= 1 && spi < 1) {
+    msg = '⏰ <strong>Cost OK, but behind schedule.</strong> Spending is under control, but work is lagging. Consider adding resources.';
+    cls = 'verdict-box verdict-yellow';
+  } else if (cpi < 1 && spi >= 1) {
+    msg = '💸 <strong>On time, but over budget.</strong> Work is progressing well, but costs are too high. Review and control spending.';
+    cls = 'verdict-box verdict-yellow';
+  } else {
+    msg = '🚨 <strong>Over budget AND behind schedule.</strong> Immediate corrective action is needed. Escalate to project sponsor.';
+    cls = 'verdict-box verdict-red';
+  }
+  vbox.innerHTML = msg;
+  vbox.className = cls;
+}
+
+rescaleSliders();
+recalc();
+</script>
+</body>
+</html>
